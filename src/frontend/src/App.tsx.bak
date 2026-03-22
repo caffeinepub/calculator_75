@@ -13,14 +13,14 @@ const TOTAL_LAPS = 5;
 
 const TRACK_CX = 350;
 const TRACK_CY = 250;
-const TRACK_W = 960;
-const TRACK_H = 640;
-const TRACK_R = 190;
-const TRACK_HALF_W = 100;
+const TRACK_W = 480;
+const TRACK_H = 300;
+const TRACK_R = 110;
+const TRACK_HALF_W = 58;
 
-const FINISH_Y = 595;
-const FINISH_X1 = 250;
-const FINISH_X2 = 450;
+const FINISH_Y = 415;
+const FINISH_X1 = 295;
+const FINISH_X2 = 405;
 
 const START_X = (FINISH_X1 + FINISH_X2) / 2;
 const START_Y = FINISH_Y - 25;
@@ -31,29 +31,6 @@ const toWX = (x: number) => x - TRACK_CX;
 const toWZ = (y: number) => y - TRACK_CY;
 
 // ─── Types ────────────────────────────────────────────────────────────────
-type RoadZone = "asphalt" | "dirt" | "cobble" | "wet";
-
-const ZONE_LABEL: Record<RoadZone, string> = {
-  asphalt: "🛣️ Asphalt",
-  dirt: "🟤 Dirt",
-  cobble: "⬛ Cobbles",
-  wet: "💧 Wet",
-};
-const ZONE_COLOR: Record<RoadZone, string> = {
-  asphalt: "#555",
-  dirt: "#8B5E3C",
-  cobble: "#909090",
-  wet: "#3498db",
-};
-
-function getRoadZone(x: number, y: number): RoadZone {
-  // x, y are 2D canvas coords
-  if (x < 50) return "dirt"; // left curve
-  if (y < 0) return "cobble"; // top straight
-  if (x > 680) return "wet"; // right curve
-  return "asphalt";
-}
-
 type CameraMode = 0 | 1 | 2;
 type Phase = "start" | "racing" | "finished";
 
@@ -80,7 +57,6 @@ interface RaceState {
   bestLap: number;
   lastCrossY: number;
   raceStartTime: number;
-  zone: RoadZone;
 }
 
 interface UISnap {
@@ -91,7 +67,6 @@ interface UISnap {
   speed: number;
   boosting: boolean;
   lapTimes: number[];
-  zone: RoadZone;
 }
 
 // ─── Physics Helpers ──────────────────────────────────────────────────────
@@ -142,7 +117,6 @@ function initRace(): RaceState {
     bestLap: Number.POSITIVE_INFINITY,
     lastCrossY: -1,
     raceStartTime: 0,
-    zone: "asphalt",
   };
 }
 
@@ -269,75 +243,6 @@ function Track3D() {
       outer.push({ pos: getPoint(TRACK_HALF_W + 2), red: i % 2 === 0 });
       inner.push({ pos: getPoint(-(TRACK_HALF_W + 2)), red: i % 2 === 0 });
     }
-    return { outer, inner };
-  }, []);
-
-  // Cobblestone texture
-  const cobbleTex = useMemo(() => {
-    const c = document.createElement("canvas");
-    c.width = 128;
-    c.height = 128;
-    const ctx = c.getContext("2d");
-    if (ctx) {
-      ctx.fillStyle = "#999";
-      ctx.fillRect(0, 0, 128, 128);
-      ctx.fillStyle = "#888";
-      for (let row = 0; row < 8; row++) {
-        for (let col = 0; col < 8; col++) {
-          const offset = row % 2 === 0 ? 0 : 8;
-          ctx.fillRect(col * 16 + offset + 1, row * 16 + 1, 14, 14);
-        }
-      }
-      ctx.strokeStyle = "#666";
-      ctx.lineWidth = 1;
-      for (let row = 0; row <= 8; row++) ctx.strokeRect(0, row * 16, 128, 1);
-      for (let col = 0; col <= 8; col++) ctx.strokeRect(col * 16, 0, 1, 128);
-    }
-    const tex = new THREE.CanvasTexture(c);
-    tex.wrapS = THREE.RepeatWrapping;
-    tex.wrapT = THREE.RepeatWrapping;
-    tex.repeat.set(5, 2);
-    return tex;
-  }, []);
-
-  // Guardrail positions (24 outer, 24 inner)
-  const guardrailData = useMemo(() => {
-    const count = 40;
-    const hw = TRACK_W / 2 - TRACK_R;
-    const hh = TRACK_H / 2 - TRACK_R;
-    const outerOff = TRACK_HALF_W + 18;
-    const innerOff = -(TRACK_HALF_W + 12);
-    const makePos = (i: number, offset: number): [number, number, number] => {
-      const t = (i / count) * Math.PI * 2;
-      const cosA = Math.cos(t);
-      const sinA = Math.sin(t);
-      let px: number;
-      let py: number;
-      const inCX = Math.abs(cosA * 9999) > hw;
-      const inCY = Math.abs(sinA * 9999) > hh;
-      if (inCX && inCY) {
-        const cx = (cosA > 0 ? 1 : -1) * hw;
-        const cy = (sinA > 0 ? 1 : -1) * hh;
-        const aa = Math.atan2(sinA * 9999 - cy, cosA * 9999 - cx);
-        px = TRACK_CX + cx + Math.cos(aa) * (TRACK_R + offset);
-        py = TRACK_CY + cy + Math.sin(aa) * (TRACK_R + offset);
-      } else if (inCX) {
-        px = TRACK_CX + (cosA > 0 ? 1 : -1) * (hw + TRACK_R + offset);
-        py = TRACK_CY + Math.max(-hh, Math.min(hh, sinA * 9999));
-      } else {
-        px = TRACK_CX + Math.max(-hw, Math.min(hw, cosA * 9999));
-        py = TRACK_CY + (sinA > 0 ? 1 : -1) * (hh + TRACK_R + offset);
-      }
-      return [toWX(px), 2.5, toWZ(py)];
-    };
-    const outer: [number, number, number][] = Array.from(
-      { length: count },
-      (_, i) => makePos(i, outerOff),
-    );
-    const inner: [number, number, number][] = Array.from(
-      { length: count },
-      (_, i) => makePos(i, innerOff),
-    );
     return { outer, inner };
   }, []);
 
@@ -521,131 +426,6 @@ function Track3D() {
         <boxGeometry args={[76, 2, 1]} />
         <meshLambertMaterial color="#F2B233" />
       </mesh>
-
-      {/* ── ROAD ZONE OVERLAYS ──────────────────────────────── */}
-
-      {/* Dirt zone - left curve: arc of brown planes */}
-      {Array.from({ length: 8 }, (_, i) => {
-        const zOff = -80 + i * 22;
-        return (
-          <mesh
-            // biome-ignore lint/suspicious/noArrayIndexKey: static geometry
-            key={`dirt-seg-${i}`}
-            rotation={[-Math.PI / 2, 0, 0]}
-            position={[-165, 0.15, zOff]}
-            renderOrder={1}
-          >
-            <planeGeometry args={[80, 20]} />
-            <meshLambertMaterial color="#7A5230" transparent opacity={0.75} />
-          </mesh>
-        );
-      })}
-
-      {/* Cobble zone - top straight: textured plane */}
-      <mesh
-        rotation={[-Math.PI / 2, 0, 0]}
-        position={[0, 0.15, -125]}
-        renderOrder={1}
-      >
-        <planeGeometry args={[340, 116]} />
-        <meshBasicMaterial map={cobbleTex} />
-      </mesh>
-
-      {/* Wet zone - right curve: arc of blue planes */}
-      {Array.from({ length: 8 }, (_, i) => {
-        const zOff = -80 + i * 22;
-        return (
-          <mesh
-            // biome-ignore lint/suspicious/noArrayIndexKey: static geometry
-            key={`wet-seg-${i}`}
-            rotation={[-Math.PI / 2, 0, 0]}
-            position={[165, 0.15, zOff]}
-            renderOrder={1}
-          >
-            <planeGeometry args={[80, 20]} />
-            <meshLambertMaterial color="#2C3E6B" transparent opacity={0.6} />
-          </mesh>
-        );
-      })}
-
-      {/* ── GUARDRAILS ───────────────────────────────────────── */}
-      {guardrailData.outer.map((pos, i) => (
-        <mesh // biome-ignore lint/suspicious/noArrayIndexKey: static geometry
-          key={`gr-out-${i}`}
-          position={pos}
-        >
-          <boxGeometry args={[18, 5, 4]} />
-          <meshLambertMaterial color="#cccccc" />
-        </mesh>
-      ))}
-      {guardrailData.inner.map((pos, i) => (
-        <mesh // biome-ignore lint/suspicious/noArrayIndexKey: static geometry
-          key={`gr-in-${i}`}
-          position={pos}
-        >
-          <boxGeometry args={[14, 4, 3]} />
-          <meshLambertMaterial color="#bbbbbb" />
-        </mesh>
-      ))}
-
-      {/* ── TIRE STACKS ──────────────────────────────────────── */}
-      {(
-        [
-          [toWX(110), 0, toWZ(160)],
-          [toWX(590), 0, toWZ(160)],
-          [toWX(110), 0, toWZ(350)],
-          [toWX(590), 0, toWZ(350)],
-        ] as [number, number, number][]
-      ).map((pos, ti) => (
-        <group // biome-ignore lint/suspicious/noArrayIndexKey: static geometry
-          key={`tires-${ti}`}
-          position={pos}
-        >
-          {[2.5, 7.5, 12.5].map((yy, ri) => (
-            <mesh // biome-ignore lint/suspicious/noArrayIndexKey: static geometry
-              key={`tire-${ri}`}
-              position={[0, yy, 0]}
-              rotation={[Math.PI / 2, 0, 0]}
-            >
-              <torusGeometry args={[6, 2.5, 8, 12]} />
-              <meshLambertMaterial color="#1a1a1a" />
-            </mesh>
-          ))}
-        </group>
-      ))}
-
-      {/* ── ROAD SIGNS ───────────────────────────────────────── */}
-      {/* Dirt warning sign */}
-      <group position={[toWX(185), 0, toWZ(200)]}>
-        <mesh position={[0, 15, 0]}>
-          <cylinderGeometry args={[1.5, 1.5, 30, 7]} />
-          <meshLambertMaterial color="#888" />
-        </mesh>
-        <mesh position={[0, 33, 0]}>
-          <boxGeometry args={[20, 12, 2]} />
-          <meshLambertMaterial color="#F5A623" />
-        </mesh>
-        <mesh position={[0, 33, 1.2]}>
-          <boxGeometry args={[16, 8, 0.5]} />
-          <meshBasicMaterial color="#7A3500" />
-        </mesh>
-      </group>
-
-      {/* Wet warning sign */}
-      <group position={[toWX(515), 0, toWZ(200)]}>
-        <mesh position={[0, 15, 0]}>
-          <cylinderGeometry args={[1.5, 1.5, 30, 7]} />
-          <meshLambertMaterial color="#888" />
-        </mesh>
-        <mesh position={[0, 33, 0]}>
-          <boxGeometry args={[20, 12, 2]} />
-          <meshLambertMaterial color="#3498db" />
-        </mesh>
-        <mesh position={[0, 33, 1.2]}>
-          <boxGeometry args={[16, 8, 0.5]} />
-          <meshBasicMaterial color="#0a3d62" />
-        </mesh>
-      </group>
     </group>
   );
 }
@@ -871,42 +651,19 @@ function GameLoop({ stateRef, cameraMode, onUiSync }: GameLoopProps) {
     // ── Physics ──────────────────────────────────────────────────────────
     if (s.phase === "racing") {
       const maxSpd = s.boosting ? BOOST_SPEED : MAX_SPEED;
-      // Zone-based physics — compute base effective max
-      const baseEffMax = isOnTrack(s.x, s.y) ? maxSpd : 2;
+      const effectiveMax = isOnTrack(s.x, s.y) ? maxSpd : 2;
 
       if (s.throttle) {
-        s.speed = Math.min(baseEffMax, s.speed + ACCEL * fd);
+        s.speed = Math.min(effectiveMax, s.speed + ACCEL * fd);
       } else if (s.braking) {
         s.speed = Math.max(0, s.speed - BRAKE_FORCE * fd);
       } else {
         s.speed = Math.max(0, s.speed - DRAG * fd);
       }
-      if (s.speed > baseEffMax)
-        s.speed = Math.max(baseEffMax, s.speed - 0.1 * fd);
+      if (s.speed > effectiveMax)
+        s.speed = Math.max(effectiveMax, s.speed - 0.1 * fd);
 
-      // Zone-based physics modifiers
-      const zone = getRoadZone(s.x, s.y);
-      s.zone = zone;
-      const zoneMaxMult =
-        zone === "dirt"
-          ? 0.7
-          : zone === "cobble"
-            ? 0.85
-            : zone === "wet"
-              ? 1.1
-              : 1.0;
-      const zoneSteerMult =
-        zone === "dirt"
-          ? 0.8
-          : zone === "cobble"
-            ? 0.9
-            : zone === "wet"
-              ? 1.3
-              : 1.0;
-      const zoneMax = baseEffMax * zoneMaxMult;
-      if (s.speed > zoneMax) s.speed = Math.max(zoneMax, s.speed - 0.08 * fd);
-
-      const steerAmt = STEER * zoneSteerMult * (s.speed / MAX_SPEED) * fd;
+      const steerAmt = STEER * (s.speed / MAX_SPEED) * fd;
       if (s.steerLeft) s.angle -= steerAmt;
       if (s.steerRight) s.angle += steerAmt;
 
@@ -1099,7 +856,6 @@ export default function App() {
     speed: 0,
     boosting: false,
     lapTimes: [],
-    zone: "asphalt" as RoadZone,
   });
   const [touchActive, setTouchActive] = useState({
     throttle: false,
@@ -1119,7 +875,6 @@ export default function App() {
       speed: s.speed,
       boosting: s.boosting,
       lapTimes: [...s.lapTimes],
-      zone: s.zone,
     });
   }, []);
 
@@ -1138,7 +893,6 @@ export default function App() {
       speed: 0,
       boosting: false,
       lapTimes: [],
-      zone: "asphalt" as RoadZone,
     });
   }, []);
 
@@ -1456,20 +1210,6 @@ export default function App() {
             >
               📷 {CAMERA_LABELS[cameraMode]}
             </button>
-            <div
-              style={{
-                fontSize: 10,
-                padding: "2px 8px",
-                borderRadius: 99,
-                background: ZONE_COLOR[uiSnap.zone],
-                color: "#fff",
-                fontWeight: 700,
-                letterSpacing: "0.04em",
-                transition: "background 0.3s",
-              }}
-            >
-              {ZONE_LABEL[uiSnap.zone]}
-            </div>
           </div>
         </div>
 
