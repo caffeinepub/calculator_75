@@ -1,27 +1,55 @@
 @font-face {
-  font-family: "DM Serif Display";
-  src: url("/assets/fonts/DMSerifDisplay-Regular.woff2") format("woff2");
+  font-family: "Bricolage Grotesque";
+  src: url("/assets/fonts/BricolageGrotesque-Regular.woff2") format("woff2");
   font-weight: 400;
   font-display: swap;
 }
 
 @font-face {
-  font-family: "Satoshi";
-  src: url("/assets/fonts/Satoshi-Regular.woff2") format("woff2");
+  font-family: "Bricolage Grotesque";
+  src: url("/assets/fonts/BricolageGrotesque-SemiBold.woff2") format("woff2");
+  font-weight: 600;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Bricolage Grotesque";
+  src: url("/assets/fonts/BricolageGrotesque-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Bricolage Grotesque";
+  src: url("/assets/fonts/BricolageGrotesque-ExtraBold.woff2") format("woff2");
+  font-weight: 800;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Figtree";
+  src: url("/assets/fonts/Figtree-Regular.woff2") format("woff2");
   font-weight: 400;
   font-display: swap;
 }
 
 @font-face {
-  font-family: "Satoshi";
-  src: url("/assets/fonts/Satoshi-Medium.woff2") format("woff2");
+  font-family: "Figtree";
+  src: url("/assets/fonts/Figtree-Medium.woff2") format("woff2");
   font-weight: 500;
   font-display: swap;
 }
 
 @font-face {
-  font-family: "Satoshi";
-  src: url("/assets/fonts/Satoshi-Bold.woff2") format("woff2");
+  font-family: "Figtree";
+  src: url("/assets/fonts/Figtree-SemiBold.woff2") format("woff2");
+  font-weight: 600;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Figtree";
+  src: url("/assets/fonts/Figtree-Bold.woff2") format("woff2");
   font-weight: 700;
   font-display: swap;
 }
@@ -32,66 +60,59 @@
 
 @layer base {
   :root {
-    /* Warm ivory background */
-    --background: 0.97 0.008 80;
-    --foreground: 0.18 0.01 50;
+    /* Deep navy background */
+    --background: 0.21 0.06 235;
+    --foreground: 0.98 0.005 80;
 
-    --card: 0.95 0.01 75;
-    --card-foreground: 0.18 0.01 50;
+    --card: 0.98 0.005 80;
+    --card-foreground: 0.22 0.03 220;
 
-    --popover: 0.97 0.008 80;
-    --popover-foreground: 0.18 0.01 50;
+    --popover: 0.98 0.005 80;
+    --popover-foreground: 0.22 0.03 220;
 
-    /* Deep charcoal primary */
-    --primary: 0.22 0.01 50;
-    --primary-foreground: 0.97 0.005 80;
+    /* Warm yellow primary */
+    --primary: 0.78 0.17 75;
+    --primary-foreground: 0.15 0.05 235;
 
-    /* Warm beige secondary */
-    --secondary: 0.88 0.02 75;
-    --secondary-foreground: 0.25 0.01 50;
+    /* Olive green secondary */
+    --secondary: 0.6 0.13 130;
+    --secondary-foreground: 0.98 0.005 80;
 
-    --muted: 0.91 0.015 75;
-    --muted-foreground: 0.55 0.01 60;
+    --muted: 0.95 0.03 155;
+    --muted-foreground: 0.55 0.05 220;
 
-    /* Terracotta accent */
-    --accent: 0.62 0.17 38;
-    --accent-foreground: 0.97 0.005 80;
+    /* Orange accent */
+    --accent: 0.72 0.16 60;
+    --accent-foreground: 0.98 0.005 80;
 
-    --destructive: 0.56 0.18 22;
-    --destructive-foreground: 0.97 0.005 80;
+    --destructive: 0.56 0.22 22;
+    --destructive-foreground: 0.98 0.005 80;
 
-    --border: 0.82 0.02 70;
-    --input: 0.82 0.02 70;
-    --ring: 0.62 0.17 38;
+    --border: 0.3 0.06 235;
+    --input: 0.3 0.06 235;
+    --ring: 0.78 0.17 75;
 
     --radius: 0.5rem;
 
-    /* Calc-specific tokens */
-    --calc-bg: 0.93 0.015 75;
-    --calc-display-bg: 0.19 0.01 50;
-    --calc-btn-digit: 0.89 0.018 72;
-    --calc-btn-digit-hover: 0.85 0.022 70;
-    --calc-btn-op: 0.78 0.065 60;
-    --calc-btn-op-hover: 0.72 0.08 58;
-    --calc-btn-fn: 0.82 0.03 68;
-    --calc-btn-fn-hover: 0.76 0.04 66;
-    --calc-btn-eq: 0.62 0.17 38;
-    --calc-btn-eq-hover: 0.57 0.19 37;
+    /* Game-specific tokens */
+    --hud-bg: 0.21 0.06 235;
+    --hud-accent: 0.78 0.17 75;
+    --hud-green: 0.6 0.13 130;
 
-    --chart-1: 0.62 0.17 38;
-    --chart-2: 0.78 0.065 60;
-    --chart-3: 0.55 0.01 60;
-    --chart-4: 0.82 0.02 70;
-    --chart-5: 0.22 0.01 50;
+    --chart-1: 0.78 0.17 75;
+    --chart-2: 0.6 0.13 130;
+    --chart-3: 0.55 0.05 220;
+    --chart-4: 0.3 0.06 235;
+    --chart-5: 0.21 0.06 235;
 
-    --sidebar: 0.95 0.01 75;
-    --sidebar-foreground: 0.18 0.01 50;
-    --sidebar-primary: 0.62 0.17 38;
-    --sidebar-primary-foreground: 0.97 0.005 80;
-    --sidebar-accent: 0.88 0.02 75;
-    --sidebar-accent-foreground: 0.25 0.01 50;
-    --sidebar-border: 0.82 0.02 70;
-    --sidebar-ring: 0.62 0.17 38;
+    --sidebar: 0.18 0.06 235;
+    --sidebar-foreground: 0.98 0.005 80;
+    --sidebar-primary: 0.78 0.17 75;
+    --sidebar-primary-foreground: 0.15 0.05 235;
+    --sidebar-accent: 0.6 0.13 130;
+    --sidebar-accent-foreground: 0.98 0.005 80;
+    --sidebar-border: 0.3 0.06 235;
+    --sidebar-ring: 0.78 0.17 75;
   }
 }
 
@@ -101,23 +122,38 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: "Satoshi", sans-serif;
+    font-family: "Figtree", system-ui, sans-serif;
   }
 }
 
-/* Calculator button press animation */
-@keyframes btn-press {
-  0% {
-    transform: scale(1) translateY(0);
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
   }
-  40% {
-    transform: scale(0.96) translateY(1px);
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pop-in {
+  0% {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.05);
   }
   100% {
-    transform: scale(1) translateY(0);
+    transform: scale(1);
+    opacity: 1;
   }
 }
 
-.calc-btn-press {
-  animation: btn-press 0.12s ease-out;
+.animate-fade-in {
+  animation: fade-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.animate-pop-in {
+  animation: pop-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
